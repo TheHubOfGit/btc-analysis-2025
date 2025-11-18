@@ -1,8 +1,9 @@
 import React from 'react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { motion } from 'framer-motion';
 
-const StatsCard = ({ title, value, date, type = 'neutral', className }) => {
+const StatsCard = ({ title, value, date, type = 'neutral', className, delay = 0 }) => {
     const colors = {
         neutral: 'border-white/10 text-white',
         success: 'border-neon-green/30 text-neon-green shadow-neon-green/10',
@@ -11,11 +12,18 @@ const StatsCard = ({ title, value, date, type = 'neutral', className }) => {
     };
 
     return (
-        <div className={twMerge(
-            "relative overflow-hidden bg-black/40 backdrop-blur-md border rounded-xl p-6 transition-all duration-300 hover:scale-[1.02] hover:bg-black/50 shadow-lg",
-            colors[type],
-            className
-        )}>
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay, duration: 0.5 }}
+            whileHover={{ scale: 1.02, backgroundColor: 'rgba(0,0,0,0.6)' }}
+            className={twMerge(
+                "relative overflow-hidden bg-black/40 backdrop-blur-md border rounded-xl p-6 shadow-lg cursor-default",
+                colors[type],
+                className
+            )}
+        >
             <div className="absolute top-0 right-0 p-4 opacity-10">
                 {/* Abstract Icon or Shape */}
                 <div className={clsx("w-16 h-16 rounded-full blur-xl", {
@@ -38,7 +46,7 @@ const StatsCard = ({ title, value, date, type = 'neutral', className }) => {
                 </span>
                 <span className="text-gray-500 text-sm font-mono">{date}</span>
             </div>
-        </div>
+        </motion.div>
     );
 };
 

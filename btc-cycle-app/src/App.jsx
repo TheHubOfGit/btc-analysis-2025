@@ -56,18 +56,21 @@ function App() {
             value={`$${nextLow.price.toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
             date={nextLow.date}
             type="danger"
+            delay={0.2}
           />
           <StatsCard
             title="Projected High (2029)"
             value={`$${nextHigh.price.toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
             date={nextHigh.date}
             type="success"
+            delay={0.4}
           />
           <StatsCard
             title="Current Cycle Status"
             value="Bearish Trend"
             date="Approaching Low"
             type="neutral"
+            delay={0.6}
           />
         </div>
 

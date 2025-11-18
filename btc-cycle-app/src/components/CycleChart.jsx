@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import {
     ComposedChart,
     Line,
@@ -152,7 +153,13 @@ const CycleChart = ({ data, cycles, forecast }) => {
     };
 
     return (
-        <div className="w-full h-[600px] bg-black/40 backdrop-blur-sm rounded-2xl border border-white/10 p-6 shadow-2xl">
+        <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.8 }}
+            className="w-full h-[600px] bg-black/40 backdrop-blur-sm rounded-2xl border border-white/10 p-6 shadow-2xl"
+        >
             <div className="flex justify-between items-center mb-6">
                 <h3 className="text-xl font-bold text-white flex items-center gap-2">
                     <span className="w-2 h-2 bg-neon-green rounded-full animate-pulse"></span>
@@ -206,13 +213,16 @@ const CycleChart = ({ data, cycles, forecast }) => {
                         strokeWidth={1.5}
                         dot={false}
                         activeDot={false}
-                        isAnimationActive={false}
+                        isAnimationActive={true}
+                        animationDuration={2000}
                     />
 
                     <Scatter
                         data={scatterDataWithTime}
                         dataKey="price"
                         shape={renderCustomScatterPoint}
+                        isAnimationActive={true}
+                        animationDuration={2000}
                     >
                         <LabelList
                             dataKey="name"
@@ -225,7 +235,7 @@ const CycleChart = ({ data, cycles, forecast }) => {
 
                 </ComposedChart>
             </ResponsiveContainer>
-        </div>
+        </motion.div>
     );
 };
 
