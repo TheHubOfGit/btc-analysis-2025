@@ -137,8 +137,8 @@ const CycleChart = ({ data, cycles, forecast }) => {
         const { cx, cy, fill, payload } = props;
         return (
             <g className="recharts-layer recharts-scatter-symbol" style={{ cursor: 'crosshair' }}>
-                {/* Invisible hit area (reduced to prevent over-eager snapping) */}
-                <circle cx={cx} cy={cy} r={6} fill="transparent" stroke="none" />
+                {/* Invisible massive hit area */}
+                <circle cx={cx} cy={cy} r={20} fill="transparent" stroke="none" />
                 {/* Visible dot */}
                 <circle cx={cx} cy={cy} r={6} fill={fill} stroke="#fff" strokeWidth={2} />
                 {/* Pulse effect for forecast points */}
