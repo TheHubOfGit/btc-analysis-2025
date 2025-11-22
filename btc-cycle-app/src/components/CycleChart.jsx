@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
     ComposedChart,
@@ -75,6 +75,8 @@ const CustomTooltip = ({ active, payload, label, cyclePoints }) => {
 };
 
 const CycleChart = ({ data, cycles, forecast }) => {
+    const [isLogScale, setIsLogScale] = useState(true);
+
     // Prepare scatter data for cycle points
     const scatterData = [...cycles];
     if (forecast) {
@@ -165,15 +167,23 @@ const CycleChart = ({ data, cycles, forecast }) => {
             <div className="flex justify-between items-center mb-6">
                 <h3 className="text-xl font-bold text-white flex items-center gap-2">
                     <span className="w-2 h-2 bg-neon-green rounded-full animate-pulse"></span>
-                    BTC Price Cycles (Log Scale)
+                    BTC Price Cycles ({isLogScale ? 'Log' : 'Linear'} Scale)
                 </h3>
-                <div className="flex gap-4 text-xs text-gray-400">
-                    <div className="flex items-center gap-2">
-                        <span className="w-3 h-3 rounded-full bg-[#00ff9d]"></span> Cycle High
+                <div className="flex items-center gap-6">
+                    <div className="flex gap-4 text-xs text-gray-400">
+                        <div className="flex items-center gap-2">
+                            <span className="w-3 h-3 rounded-full bg-[#00ff9d]"></span> Cycle High
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <span className="w-3 h-3 rounded-full bg-[#ff0055]"></span> Cycle Low
+                        </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <span className="w-3 h-3 rounded-full bg-[#ff0055]"></span> Cycle Low
-                    </div>
+                    <button
+                        onClick={() => setIsLogScale(!isLogScale)}
+                        className="px-3 py-1.5 text-xs font-medium rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 hover:border-neon-purple/50 text-gray-300 hover:text-white transition-all duration-200"
+                    >
+                        {isLogScale ? 'Log Scale' : 'Linear Scale'}
+                    </button>
                 </div>
             </div>
 
@@ -194,7 +204,7 @@ const CycleChart = ({ data, cycles, forecast }) => {
                     />
                     <YAxis
                         dataKey="price"
-                        scale="log"
+                        scale={isLogScale ? "log" : "linear"}
                         domain={[minPrice * 0.8, maxPrice * 1.2]}
                         stroke="#666"
                         tick={{ fill: '#666', fontSize: 12 }}
