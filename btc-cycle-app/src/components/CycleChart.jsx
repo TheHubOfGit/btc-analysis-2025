@@ -99,9 +99,10 @@ const CycleChart = ({ data, cycles, forecast }) => {
         r: 8 // Increased scatter radius
     }));
 
-    // Merge forecast points into the main data for the line chart
-    const chartData = [...data];
+    // Prepare historical data (smooth curve)
+    const historicalData = [...data];
 
+    // Prepare forecast data (straight lines between points)
     // Sort forecast points by date to ensure correct line drawing
     const sortedForecast = Object.values(forecast || {})
         .sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -109,19 +110,32 @@ const CycleChart = ({ data, cycles, forecast }) => {
     // Only add forecast points that are after the last data point
     const lastDate = new Date(data[data.length - 1]?.date);
 
-    sortedForecast.forEach(point => {
-        if (new Date(point.date) > lastDate) {
-            chartData.push({
-                date: point.date,
-                price: point.price,
-                isForecast: true
-            });
-        }
-    });
+    // Create forecast line data - start from last historical point
+    const forecastData = [];
+    if (sortedForecast.length > 0) {
+        // Add the last historical point to connect the lines
+        forecastData.push({
+            date: data[data.length - 1].date,
+            price: data[data.length - 1].price,
+            isForecast: false
+        });
 
-    // Calculate min and max for domain
+        // Add forecast points
+        sortedForecast.forEach(point => {
+            if (new Date(point.date) > lastDate) {
+                forecastData.push({
+                    date: point.date,
+                    price: point.price,
+                    isForecast: true
+                });
+            }
+        });
+    }
+
+    // Calculate min and max for domain from all data
     const allPrices = [
-        ...chartData.map(d => d.price),
+        ...historicalData.map(d => d.price),
+        ...forecastData.map(d => d.price),
         ...styledScatterData.map(d => d.price)
     ];
     const minPrice = Math.min(...allPrices);
@@ -133,7 +147,8 @@ const CycleChart = ({ data, cycles, forecast }) => {
         timestamp: new Date(item.date).getTime()
     }));
 
-    const chartDataWithTime = processData(chartData);
+    const historicalDataWithTime = processData(historicalData);
+    const forecastDataWithTime = processData(forecastData);
     const scatterDataWithTime = processData(styledScatterData);
 
     // Custom scatter point with large hit area
@@ -189,7 +204,7 @@ const CycleChart = ({ data, cycles, forecast }) => {
 
             <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart
-                    data={chartDataWithTime}
+                    data={historicalDataWithTime}
                     margin={{ top: 20, right: 30, left: 20, bottom: 10 }}
                 >
                     <CartesianGrid strokeDasharray="3 3" stroke="#333" vertical={false} />
@@ -218,11 +233,26 @@ const CycleChart = ({ data, cycles, forecast }) => {
                         trigger="hover"
                     />
 
+                    {/* Historical data - smooth curve */}
                     <Line
                         type="monotone"
                         dataKey="price"
                         stroke="#ffffff"
                         strokeWidth={1.5}
+                        dot={false}
+                        activeDot={false}
+                        isAnimationActive={true}
+                        animationDuration={2000}
+                    />
+
+                    {/* Forecast data - straight lines */}
+                    <Line
+                        data={forecastDataWithTime}
+                        type="linear"
+                        dataKey="price"
+                        stroke="#bd00ff"
+                        strokeWidth={2}
+                        strokeDasharray="5 5"
                         dot={false}
                         activeDot={false}
                         isAnimationActive={true}
