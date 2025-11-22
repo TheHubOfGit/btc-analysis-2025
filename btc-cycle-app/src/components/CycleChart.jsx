@@ -281,10 +281,10 @@ const CycleChart = ({ data, cycles, forecast }) => {
                         data={cyclePointsLineWithTime}
                         type="linear"
                         dataKey="price"
-                        stroke="#666666"
-                        strokeWidth={1}
-                        strokeDasharray="2 3"
-                        strokeOpacity={0.3}
+                        stroke="#888888"
+                        strokeWidth={1.5}
+                        strokeDasharray="3 3"
+                        strokeOpacity={0.5}
                         dot={false}
                         activeDot={false}
                         isAnimationActive={true}
