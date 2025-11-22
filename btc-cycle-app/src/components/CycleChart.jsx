@@ -89,9 +89,11 @@ const CycleChart = ({ data, cycles, forecast }) => {
     // Add styling properties to scatter data
     const styledScatterData = scatterData.map(c => ({
         ...c,
-        fill: c.name.includes('ATH') || c.name.includes('High') ? '#00ff9d' :
-            c.name.includes('Projected') && c.name.includes('High') ? '#bd00ff' :
-                '#ff0055', // Green for Highs, Purple for Projected Highs, Red for Lows
+        // Check Projected points first, then historical points
+        fill: c.name.includes('Projected') && c.name.includes('High') ? '#bd00ff' :  // Purple for Projected Highs
+            c.name.includes('Projected') && c.name.includes('Low') ? '#ff7700' :   // Orange for Projected Lows  
+                c.name.includes('ATH') || c.name.includes('High') ? '#00ff9d' :         // Green for Historical Highs
+                    '#ff0055',  // Red for Historical Lows
         r: 8 // Increased scatter radius
     }));
 

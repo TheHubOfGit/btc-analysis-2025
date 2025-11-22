@@ -207,15 +207,57 @@ def analyze_pattern(df):
         found_points["Projected_Low_2026"] = {"date": projected_low_date, "price": projected_low_price}
         
         # 3. Projected High 2029
-        # Multiplier from Low to High
-        # We used 3.5x before. Let's keep that for consistency or refine it?
-        # Let's keep 3.5x as a conservative estimate.
-        multiplier = 3.5
-        projected_high_price = projected_low_price * multiplier
+        # Calculate multiplier based on historical Low→High patterns
+        
+        print("\n--- Low → High Multiplier Analysis ---")
+        
+        # Cycle 2: 2015 Low → 2017 High
+        atl_2015_price = found_points["ATL_2015"]["price"]
+        ath_2017_price = found_points["ATH_2017"]["price"]
+        multiplier_cycle2 = ath_2017_price / atl_2015_price
+        print(f"Cycle 2: 2015 Low (${atl_2015_price:.0f}) → 2017 High (${ath_2017_price:.0f}) = {multiplier_cycle2:.2f}x")
+        
+        # Cycle 3: 2018 Low → 2021 High
+        atl_2018_price = found_points["ATL_2018"]["price"]
+        ath_2021_price = found_points["ATH_2021"]["price"]
+        multiplier_cycle3 = ath_2021_price / atl_2018_price
+        print(f"Cycle 3: 2018 Low (${atl_2018_price:.0f}) → 2021 High (${ath_2021_price:.0f}) = {multiplier_cycle3:.2f}x")
+        
+        # Cycle 4: 2022 Low → 2025 High (projected)
+        atl_2022_price = found_points["ATL_2022"]["price"]
+        multiplier_cycle4 = current_cycle_high / atl_2022_price
+        print(f"Cycle 4: 2022 Low (${atl_2022_price:.0f}) → 2025 High (${current_cycle_high:.0f}) = {multiplier_cycle4:.2f}x")
+        
+        # Calculate decay pattern
+        decay1 = multiplier_cycle2 - multiplier_cycle3
+        decay2 = multiplier_cycle3 - multiplier_cycle4
+        avg_decay = (decay1 + decay2) / 2
+        
+        print(f"\nDecay Analysis:")
+        print(f"  Cycle 2→3 decay: {decay1:.2f}x")
+        print(f"  Cycle 3→4 decay: {decay2:.2f}x")
+        print(f"  Average decay: {avg_decay:.2f}x")
+        
+        # Cycle 5: 2026 Low → 2029 High (projection)
+        multiplier_cycle5 = multiplier_cycle4 - avg_decay
+        
+        # Safety checks
+        min_multiplier = (current_cycle_high * 1.1) / projected_low_price  # Must be 10% above 2025 ATH
+        if multiplier_cycle5 < min_multiplier:
+            print(f"  Adjusted multiplier from {multiplier_cycle5:.2f}x to {min_multiplier:.2f}x (10% above 2025 ATH)")
+            multiplier_cycle5 = min_multiplier
+        
+        if multiplier_cycle5 < 2.0:  # Floor at 2x
+            print(f"  Applied floor: {multiplier_cycle5:.2f}x → 2.0x")
+            multiplier_cycle5 = 2.0
+        
+        print(f"\nCycle 5 Projected Multiplier: {multiplier_cycle5:.2f}x")
+        
+        projected_high_price = projected_low_price * multiplier_cycle5
         projected_high_2029_date = projected_low_date + pd.Timedelta(days=1064)
         
         print(f"Projected High Date (Low 2026 + 1064d): {projected_high_2029_date.strftime('%Y-%m-%d')}")
-        print(f"Projected High Price (Low ${projected_low_price:.0f} * {multiplier}x): ${projected_high_price:.2f}")
+        print(f"Projected High Price (Low ${projected_low_price:.0f} * {multiplier_cycle5:.2f}x): ${projected_high_price:.2f}")
         
         found_points["Projected_High_2029"] = {"date": projected_high_2029_date, "price": projected_high_price}
 
