@@ -110,27 +110,43 @@ const CycleChart = ({ data, cycles, forecast }) => {
     // Only add forecast points that are after the last data point
     const lastDate = new Date(data[data.length - 1]?.date);
 
-    // Create forecast line data - start from last historical point
+    // Create forecast line data - start from Projected ATH 2025
     const forecastData = [];
     if (sortedForecast.length > 0) {
-        // Add the last historical point to connect the lines
-        forecastData.push({
-            date: data[data.length - 1].date,
-            price: data[data.length - 1].price,
-            isForecast: false
-        });
-
-        // Add forecast points
+        // Add all forecast points (including ATH 2025 as the starting point)
         sortedForecast.forEach(point => {
-            if (new Date(point.date) > lastDate) {
-                forecastData.push({
-                    date: point.date,
-                    price: point.price,
-                    isForecast: true
-                });
-            }
+            forecastData.push({
+                date: point.date,
+                price: point.price,
+                isForecast: true
+            });
         });
     }
+
+    // Create a line connecting all cycle points (ATL/ATH markers) - fainter dotted line
+    const cyclePointsLine = [];
+    if (cycles && cycles.length > 0) {
+        // Add historical cycle points
+        cycles.forEach(point => {
+            cyclePointsLine.push({
+                date: point.date,
+                price: point.price,
+                isCyclePoint: true
+            });
+        });
+    }
+    // Add forecast points to cycle line as well
+    if (sortedForecast.length > 0) {
+        sortedForecast.forEach(point => {
+            cyclePointsLine.push({
+                date: point.date,
+                price: point.price,
+                isCyclePoint: true
+            });
+        });
+    }
+    // Sort by date
+    cyclePointsLine.sort((a, b) => new Date(a.date) - new Date(b.date));
 
     // Calculate min and max for domain from all data
     const allPrices = [
@@ -149,6 +165,7 @@ const CycleChart = ({ data, cycles, forecast }) => {
 
     const historicalDataWithTime = processData(historicalData);
     const forecastDataWithTime = processData(forecastData);
+    const cyclePointsLineWithTime = processData(cyclePointsLine);
     const scatterDataWithTime = processData(styledScatterData);
 
     // Custom scatter point with large hit area
@@ -253,6 +270,21 @@ const CycleChart = ({ data, cycles, forecast }) => {
                         stroke="#bd00ff"
                         strokeWidth={2}
                         strokeDasharray="5 5"
+                        dot={false}
+                        activeDot={false}
+                        isAnimationActive={true}
+                        animationDuration={2000}
+                    />
+
+                    {/* Cycle points connection - faint dotted line */}
+                    <Line
+                        data={cyclePointsLineWithTime}
+                        type="linear"
+                        dataKey="price"
+                        stroke="#666666"
+                        strokeWidth={1}
+                        strokeDasharray="2 3"
+                        strokeOpacity={0.3}
                         dot={false}
                         activeDot={false}
                         isAnimationActive={true}
