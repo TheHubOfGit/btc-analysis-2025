@@ -9,16 +9,48 @@ function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/btc_data.json')
-      .then(res => res.json())
-      .then(jsonData => {
-        setData(jsonData);
+    const fetchData = async () => {
+      try {
+        // 1. Fetch historical data
+        const historyRes = await fetch('/btc_data.json');
+        const historyJson = await historyRes.json();
+
+        // 2. Fetch live price from CoinGecko
+        // Using simple/price endpoint which is free and doesn't require API key
+        try {
+          const liveRes = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd');
+          const liveJson = await liveRes.json();
+
+          if (liveJson.bitcoin && liveJson.bitcoin.usd) {
+            const currentPrice = liveJson.bitcoin.usd;
+            const today = new Date().toISOString().split('T')[0];
+
+            // Check if we need to add a new data point
+            const lastPoint = historyJson.history[historyJson.history.length - 1];
+
+            if (lastPoint.date !== today) {
+              historyJson.history.push({
+                date: today,
+                price: currentPrice
+              });
+            } else {
+              // Update today's price if it already exists
+              lastPoint.price = currentPrice;
+            }
+          }
+        } catch (e) {
+          console.warn("Failed to fetch live price, using historical data only", e);
+        }
+
+        setData(historyJson);
         setLoading(false);
-      })
-      .catch(err => {
+      } catch (err) {
         console.error("Error fetching data:", err);
         setLoading(false);
-      });
+      }
+    };
+
+    fetchData();
   }, []);
 
   if (loading) {
