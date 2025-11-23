@@ -82,7 +82,14 @@ function App() {
       <main className="container mx-auto px-4 w-full space-y-12">
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <StatsCard
+            title="Current Price"
+            value={`$${data.history[data.history.length - 1].price.toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
+            date={data.history[data.history.length - 1].date}
+            type="neutral"
+            delay={0.1}
+          />
           <StatsCard
             title="Projected Low (2026)"
             value={`$${nextLow.price.toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
