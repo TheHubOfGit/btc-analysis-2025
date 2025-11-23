@@ -15,31 +15,62 @@ function App() {
         const historyRes = await fetch('/btc_data.json');
         const historyJson = await historyRes.json();
 
-        // 2. Fetch live price from CoinGecko
-        // Using simple/price endpoint which is free and doesn't require API key
+        // 2. Determine date range to fetch
+        const lastDataPoint = historyJson.history[historyJson.history.length - 1];
+        const lastDate = new Date(lastDataPoint.date);
+        const today = new Date();
+
+        // Calculate difference in days
+        const diffTime = Math.abs(today - lastDate);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
         try {
-          const liveRes = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd');
-          const liveJson = await liveRes.json();
+          if (diffDays > 1) {
+            // Fetch range if gap is more than 1 day
+            // Add 1 day to start date to avoid duplicating the last point
+            const fromTimestamp = Math.floor(lastDate.getTime() / 1000) + 86400;
+            const toTimestamp = Math.floor(today.getTime() / 1000);
 
-          if (liveJson.bitcoin && liveJson.bitcoin.usd) {
-            const currentPrice = liveJson.bitcoin.usd;
-            const today = new Date().toISOString().split('T')[0];
+            const rangeRes = await fetch(`https://api.coingecko.com/api/v3/coins/bitcoin/market_chart/range?vs_currency=usd&from=${fromTimestamp}&to=${toTimestamp}`);
+            const rangeJson = await rangeRes.json();
 
-            // Check if we need to add a new data point
-            const lastPoint = historyJson.history[historyJson.history.length - 1];
-
-            if (lastPoint.date !== today) {
-              historyJson.history.push({
-                date: today,
-                price: currentPrice
+            if (rangeJson.prices && rangeJson.prices.length > 0) {
+              rangeJson.prices.forEach(([timestamp, price]) => {
+                const dateStr = new Date(timestamp).toISOString().split('T')[0];
+                // Avoid duplicates just in case
+                if (dateStr !== lastDataPoint.date) {
+                  // Check if this date already exists in history (to be safe)
+                  const exists = historyJson.history.find(h => h.date === dateStr);
+                  if (!exists) {
+                    historyJson.history.push({
+                      date: dateStr,
+                      price: price
+                    });
+                  }
+                }
               });
-            } else {
-              // Update today's price if it already exists
-              lastPoint.price = currentPrice;
+            }
+          } else {
+            // Just fetch current price if gap is small (or 0)
+            const liveRes = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd');
+            const liveJson = await liveRes.json();
+
+            if (liveJson.bitcoin && liveJson.bitcoin.usd) {
+              const currentPrice = liveJson.bitcoin.usd;
+              const todayStr = today.toISOString().split('T')[0];
+
+              if (lastDataPoint.date !== todayStr) {
+                historyJson.history.push({
+                  date: todayStr,
+                  price: currentPrice
+                });
+              } else {
+                lastDataPoint.price = currentPrice;
+              }
             }
           }
         } catch (e) {
-          console.warn("Failed to fetch live price, using historical data only", e);
+          console.warn("Failed to fetch live/range price, using historical data only", e);
         }
 
         setData(historyJson);
